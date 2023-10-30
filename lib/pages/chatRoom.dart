@@ -105,6 +105,7 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
                                       color: (currentMessage.sender == widget.userModel.uid) ? Colors.grey : Theme.of(context).colorScheme.secondary,
                                       borderRadius: BorderRadius.circular(5),
                                     ),
+
                                     child: Text(
                                       currentMessage.text.toString(),
                                       style: TextStyle(

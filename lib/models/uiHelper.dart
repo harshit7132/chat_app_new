@@ -9,13 +9,9 @@ class UIHelper {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            
             CircularProgressIndicator(),
-
             SizedBox(height: 30,),
-
             Text(title),
-
           ],
         ),
       ),
@@ -29,7 +25,6 @@ class UIHelper {
       }
     );
   }
-
 
   static void showAlertDialog(BuildContext context, String title, String content) {
     AlertDialog alertDialog = AlertDialog(

@@ -1,12 +1,13 @@
 import 'dart:developer';
 
-import 'package:chat_app_new/main.dart';
-import 'package:chat_app_new/models/chatRoomModel.dart';
-import 'package:chat_app_new/models/messagemodel.dart';
-import 'package:chat_app_new/models/userModel.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:uuid/uuid.dart';
+
+import '../../../Models/chatRoom_model.dart';
+import '../../../Models/messagemodel.dart';
+import '../../../Models/userModel.dart';
 
 class ChatRoomPage extends StatefulWidget {
   final UserModel targetUser;
@@ -14,34 +15,47 @@ class ChatRoomPage extends StatefulWidget {
   final UserModel userModel;
   final User firebaseUser;
 
-  const ChatRoomPage({Key? key, required this.targetUser, required this.chatroom, required this.userModel, required this.firebaseUser}) : super(key: key);
+  const ChatRoomPage(
+      {Key? key,
+      required this.targetUser,
+      required this.chatroom,
+      required this.userModel,
+      required this.firebaseUser})
+      : super(key: key);
 
   @override
   _ChatRoomPageState createState() => _ChatRoomPageState();
 }
 
 class _ChatRoomPageState extends State<ChatRoomPage> {
-
   TextEditingController messageController = TextEditingController();
+  var uuid = Uuid();
 
   void sendMessage() async {
     String msg = messageController.text.trim();
     messageController.clear();
 
-    if(msg != "") {
+    if (msg != "") {
       // Send Message
       MessageModel newMessage = MessageModel(
-        messageid: uuid.v1(),
-        sender: widget.userModel.uid,
-        createdon: DateTime.now(),
-        text: msg,
-        seen: false
-      );
+          messageid: uuid.v1(),
+          sender: widget.userModel.id,
+          createdon: DateTime.now(),
+          text: msg,
+          seen: false);
 
-      FirebaseFirestore.instance.collection("chatrooms").doc(widget.chatroom.chatroomid).collection("messages").doc(newMessage.messageid).set(newMessage.toMap());
+      FirebaseFirestore.instance
+          .collection("chatrooms")
+          .doc(widget.chatroom.chatroomid)
+          .collection("messages")
+          .doc(newMessage.messageid)
+          .set(newMessage.toMap());
 
       widget.chatroom.lastMessage = msg;
-      FirebaseFirestore.instance.collection("chatrooms").doc(widget.chatroom.chatroomid).set(widget.chatroom.toMap());
+      FirebaseFirestore.instance
+          .collection("chatrooms")
+          .doc(widget.chatroom.chatroomid)
+          .set(widget.chatroom.toMap());
 
       log("Message Sent!");
     }
@@ -53,16 +67,15 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
       appBar: AppBar(
         title: Row(
           children: [
-
             CircleAvatar(
               backgroundColor: Colors.grey[300],
-              backgroundImage: NetworkImage(widget.targetUser.profilepic.toString()),
+              backgroundImage:
+                  NetworkImage(widget.targetUser.profilepic.toString()),
             ),
-
-            SizedBox(width: 10,),
-
-            Text(widget.targetUser.fullname.toString()),
-
+            SizedBox(
+              width: 10,
+            ),
+            Text(widget.targetUser.fullName.toString()),
           ],
         ),
       ),
@@ -70,66 +83,75 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
         child: Container(
           child: Column(
             children: [
-
               // This is where the chats will go
               Expanded(
                 child: Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 10
-                  ),
+                  padding: EdgeInsets.symmetric(horizontal: 10),
                   child: StreamBuilder(
-                    stream: FirebaseFirestore.instance.collection("chatrooms").doc(widget.chatroom.chatroomid).collection("messages").orderBy("createdon", descending: true).snapshots(),
+                    stream: FirebaseFirestore.instance
+                        .collection("chatrooms")
+                        .doc(widget.chatroom.chatroomid)
+                        .collection("messages")
+                        .orderBy("createdon", descending: true)
+                        .snapshots(),
                     builder: (context, snapshot) {
-                      if(snapshot.connectionState == ConnectionState.active) {
-                        if(snapshot.hasData) {
-                          QuerySnapshot dataSnapshot = snapshot.data as QuerySnapshot;
+                      if (snapshot.connectionState == ConnectionState.active) {
+                        if (snapshot.hasData) {
+                          QuerySnapshot dataSnapshot =
+                              snapshot.data as QuerySnapshot;
 
                           return ListView.builder(
                             reverse: true,
                             itemCount: dataSnapshot.docs.length,
                             itemBuilder: (context, index) {
-                              MessageModel currentMessage = MessageModel.fromMap(dataSnapshot.docs[index].data() as Map<String, dynamic>);
+                              MessageModel currentMessage =
+                                  MessageModel.fromMap(dataSnapshot.docs[index]
+                                      .data() as Map<String, dynamic>);
 
                               return Row(
-                                mainAxisAlignment: (currentMessage.sender == widget.userModel.uid) ? MainAxisAlignment.end : MainAxisAlignment.start,
+                                mainAxisAlignment: (currentMessage.sender ==
+                                        widget.userModel.id)
+                                    ? MainAxisAlignment.end
+                                    : MainAxisAlignment.start,
                                 children: [
                                   Container(
-                                    margin: EdgeInsets.symmetric(
-                                      vertical: 2,
-                                    ),
-                                    padding: EdgeInsets.symmetric(
-                                      vertical: 10,
-                                      horizontal: 10,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: (currentMessage.sender == widget.userModel.uid) ? Colors.grey : Theme.of(context).colorScheme.secondary,
-                                      borderRadius: BorderRadius.circular(5),
-                                    ),
-
-                                    child: Text(
-                                      currentMessage.text.toString(),
-                                      style: TextStyle(
-                                        color: Colors.white,
+                                      margin: EdgeInsets.symmetric(
+                                        vertical: 2,
                                       ),
-                                    )
-                                  ),
+                                      padding: EdgeInsets.symmetric(
+                                        vertical: 10,
+                                        horizontal: 10,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: (currentMessage.sender ==
+                                                widget.userModel.id)
+                                            ? Colors.grey
+                                            : Theme.of(context)
+                                                .colorScheme
+                                                .secondary,
+                                        borderRadius: BorderRadius.circular(5),
+                                      ),
+                                      child: Text(
+                                        'hello = ${currentMessage.text.toString()}',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                        ),
+                                      )),
                                 ],
                               );
                             },
                           );
-                        }
-                        else if(snapshot.hasError) {
+                        } else if (snapshot.hasError) {
                           return Center(
-                            child: Text("An error occured! Please check your internet connection."),
+                            child: Text(
+                                "An error occured! Please check your internet connection."),
                           );
-                        }
-                        else {
+                        } else {
                           return Center(
                             child: Text("Say hi to your new friend"),
                           );
                         }
-                      }
-                      else {
+                      } else {
                         return Center(
                           child: CircularProgressIndicator(),
                         );
@@ -141,35 +163,30 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
 
               Container(
                 color: Colors.grey[200],
-                padding: EdgeInsets.symmetric(
-                  horizontal: 15,
-                  vertical: 5
-                ),
+                padding: EdgeInsets.symmetric(horizontal: 15, vertical: 5),
                 child: Row(
                   children: [
-
                     Flexible(
                       child: TextField(
                         controller: messageController,
                         maxLines: null,
                         decoration: InputDecoration(
-                          border: InputBorder.none,
-                          hintText: "Enter message"
-                        ),
+                            border: InputBorder.none,
+                            hintText: "Enter message"),
                       ),
                     ),
-
                     IconButton(
                       onPressed: () {
                         sendMessage();
                       },
-                      icon: Icon(Icons.send, color: Theme.of(context).colorScheme.secondary,),
+                      icon: Icon(
+                        Icons.send,
+                        color: Theme.of(context).colorScheme.secondary,
+                      ),
                     ),
-
                   ],
                 ),
               ),
-
             ],
           ),
         ),

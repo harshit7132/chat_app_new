@@ -1,4 +1,3 @@
-
 import 'package:chat_app_new/firebase_options.dart';
 import 'package:chat_app_new/models/firebaseHelper.dart';
 import 'package:chat_app_new/models/userModel.dart';
@@ -9,35 +8,34 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
+import 'models/second-model/userModel.dart';
+
 var uuid = Uuid();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   User? currentUser = FirebaseAuth.instance.currentUser;
-  if(currentUser != null) {
+  if (currentUser != null) {
     // Logged In
-    UserModel? thisUserModel = await FirebaseHelper.getUserModelById(currentUser.uid);
-    if(thisUserModel != null) {
-      runApp(MyAppLoggedIn(userModel: thisUserModel, firebaseUser: currentUser));
-    }
-    else {
+    UserModel? thisUserModel =
+        await FirebaseHelper.getUserModelById(currentUser.uid);
+    if (thisUserModel != null) {
+      runApp(
+          MyAppLoggedIn(userModel: thisUserModel, firebaseUser: currentUser));
+    } else {
       runApp(MyApp());
     }
-  }
-  else {
+  } else {
     // Not logged in
     runApp(MyApp());
   }
 }
 
-
 // Not Logged In
 class MyApp extends StatelessWidget {
-  const MyApp({ Key? key }) : super(key: key);
+  const MyApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -48,13 +46,14 @@ class MyApp extends StatelessWidget {
   }
 }
 
-
 // Already Logged In
 class MyAppLoggedIn extends StatelessWidget {
   final UserModel userModel;
   final User firebaseUser;
 
-  const MyAppLoggedIn({Key? key, required this.userModel, required this.firebaseUser}) : super(key: key);
+  const MyAppLoggedIn(
+      {Key? key, required this.userModel, required this.firebaseUser})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
